@@ -11,7 +11,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 
 echo "Instance for task.............: $INSTANCE_ID"
-echo "Regionn.......................: $AWS_REGION"
+echo "Region........................: $AWS_REGION"
 AZ=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep Availability | cut -f 6 -d "|" | awk '{$1=$1;print}')
 echo "Availability Zone.............: $AZ"
 
