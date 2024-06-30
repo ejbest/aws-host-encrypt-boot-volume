@@ -11,7 +11,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 
 echo "Instance for task.............: $INSTANCE_ID"
-echo "Our local environment.........: $AWS_REGION"
+echo "Regionn.......................: $AWS_REGION"
 AZ=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep Availability | cut -f 6 -d "|" | awk '{$1=$1;print}')
 echo "Availability Zone.............: $AZ"
 
@@ -20,14 +20,14 @@ INSTANCE_INFO=$(aws ec2 describe-instances --instance-ids "$INSTANCE_ID" )
 # Do I need the above 
 
 VOLUME=$(aws ec2 describe-instances | grep -i volume | cut -d "|" -f7 | awk '{$1=$1;print}')
-echo "ROOT VOLUME...................: $VOLUME"
+echo "Root Volume...................: $VOLUME"
 
-ROOT_DEVICE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep "RootDeviceName" | cut -d"|" -f5 | awk '{$1=$1;print}')
-BLOCK_DEVICE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep "  DeviceName" | cut -d"|" -f6 | awk '{$1=$1;print}')
+ROOT_DEVICE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID  | grep "RootDeviceName" | cut -d "|" -f5 | awk '{$1=$1;print}')
+BLOCK_DEVICE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep "  DeviceName"   | cut -d "|" -f6 | awk '{$1=$1;print}')
 echo "Root Device Name..............: $ROOT_DEVICE"
 echo "Block Device Name.............: $BLOCK_DEVICE"
 if [ "$ROOT_DEVICE" == "$BLOCK_DEVICE" ]; then
-  echo "Block Device Name.............: Devices Match"
+  echo "Device Name for drive.........: Devices Match"
 else
   echo "Red Flags - Investiate........: DEVICES DIFFER Red Flags"
   echo "Red Flags - Investiate........: DEVICES DIFFER Red Flags"
@@ -39,6 +39,3 @@ ENCRYPTED_STATUS=$(aws ec2 describe-volumes --volume-ids $VOLUME --query "Volume
 echo "Volume Encryption Status......: $ENCRYPTED_STATUS"
 
 aws ec2 describe-tags --filters "Name=resource-id,Values=$VOLUME"
-
-
-
