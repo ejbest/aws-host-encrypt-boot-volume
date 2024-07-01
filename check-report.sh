@@ -10,17 +10,26 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit 1
 fi
 
-echo "Instance for task.............: $INSTANCE_ID"
-echo "Region........................: $AWS_REGION"
-AZ=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep Availability | cut -f 6 -d "|" | awk '{$1=$1;print}')
-echo "Availability Zone.............: $AZ"
-
 # Get instance details
-INSTANCE_INFO=$(aws ec2 describe-instances --instance-ids "$INSTANCE_ID" )
-# Do I need the above 
+INSTANCE=$(aws --output json --region $AWS_REGION ec2 describe-instances --instance-ids $INSTANCE_ID)
+VOLUME_ID=$(echo $INSTANCE | jq -r .Reservations[].Instances[].BlockDeviceMappings[].Ebs.VolumeId)
+VOLUME_DEVICE=$(echo $INSTANCE | jq -r .Reservations[].Instances[].BlockDeviceMappings[].DeviceName)
 
-VOLUME=$(aws ec2 describe-instances | grep -i volume | cut -d "|" -f7 | awk '{$1=$1;print}')
-echo "Root Volume...................: $VOLUME"
+# Get volume details
+VOLUME=$(aws --output json --region $AWS_REGION ec2 describe-volumes --volume-id $VOLUME_ID)
+VOLUME_AZ=$(echo $VOLUME | jq -r .Volumes[].AvailabilityZone)
+VOLUME_TYPE=$(echo $VOLUME | jq -r .Volumes[].VolumeType)
+VOLUME_IOPS=$(echo $VOLUME | jq -r .Volumes[].Iops)
+VOLUME_SIZE=$(echo $VOLUME | jq -r .Volumes[].Size)
+
+echo "Instance......................: $INSTANCE_ID"
+echo "Region........................: $AWS_REGION"
+echo "Root Volume...................: $VOLUME_ID"
+echo "Availability Zone.............: $VOLUME_AZ"
+echo "Volume Type...................: $VOLUME_TYPE"
+echo "Volume IOPS...................: $VOLUME_IOPS"
+echo "Volume Size...................: $VOLUME_SIZE"
+
 
 ROOT_DEVICE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID  | grep "RootDeviceName" | cut -d "|" -f5 | awk '{$1=$1;print}')
 BLOCK_DEVICE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep "  DeviceName"   | cut -d "|" -f6 | awk '{$1=$1;print}')
@@ -35,7 +44,7 @@ else
   echo "Red Flags - Investiate........: DEVICES DIFFER Red Flags"
 fi
 
-ENCRYPTED_STATUS=$(aws ec2 describe-volumes --volume-ids $VOLUME --query "Volumes[0].Encrypted" --output text)
+ENCRYPTED_STATUS=$(aws ec2 describe-volumes --volume-ids $VOLUME_ID --query "Volumes[0].Encrypted" --output json | jq -r '.')
 echo "Volume Encryption Status......: $ENCRYPTED_STATUS"
 
-aws ec2 describe-tags --filters "Name=resource-id,Values=$VOLUME"
+aws ec2 --output table describe-tags --filters "Name=resource-id,Values=$VOLUME_ID"
