@@ -45,3 +45,18 @@ See below the after of the same above screen shot
 Here is a log of the encryption happening 
 
 ![Alt text](img/log.jpg)
+
+
+This is the terraform.tfvars that was used 
+<pre>
+terraform.tfvars
+aws_region       = "us-east-1"
+ami_id           = "ami-0e001c9271cf7f3b9"  # Example AMI ID for Amazon Linux 2 in us-east-1
+instance_type    = "t2.micro"
+instance_name    = "testserver"
+instance_job_tag = "job1"
+root_volume_size = 10
+volume_name      = "testserverDisk"
+volume_job_tag   = "job1"
+volume_duty_tag  = "job2"
+</pre>
