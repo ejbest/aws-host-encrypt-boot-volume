@@ -12,11 +12,15 @@ fi
 
 # Get instance details
 INSTANCE=$(aws --output json --region $AWS_REGION ec2 describe-instances --instance-ids $INSTANCE_ID)
+retval=$?; if [ $retval -ne 0 ]; then echo "problem getting INSTANCE_ID $retval"; exit $retVal; fi
 VOLUME_ID=$(echo $INSTANCE | jq -r .Reservations[].Instances[].BlockDeviceMappings[].Ebs.VolumeId)
+retval=$?; if [ $retval -ne 0 ]; then echo "problem getting VolumeId $retval"; exit $retVal; fi
 VOLUME_DEVICE=$(echo $INSTANCE | jq -r .Reservations[].Instances[].BlockDeviceMappings[].DeviceName)
+retval=$?; if [ $retval -ne 0 ]; then echo "problem getting DeviceName $retval"; exit $retVal; fi
 
 # Get volume details
 VOLUME=$(aws --output json --region $AWS_REGION ec2 describe-volumes --volume-id $VOLUME_ID)
+retval=$?; if [ $retval -ne 0 ]; then echo "problem getting VOLUME info $retval"; exit $retVal; fi
 VOLUME_AZ=$(echo $VOLUME | jq -r .Volumes[].AvailabilityZone)
 VOLUME_TYPE=$(echo $VOLUME | jq -r .Volumes[].VolumeType)
 VOLUME_IOPS=$(echo $VOLUME | jq -r .Volumes[].Iops)
@@ -32,7 +36,11 @@ echo "Volume Size...................: $VOLUME_SIZE"
 
 
 ROOT_DEVICE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID  | grep "RootDeviceName" | cut -d "|" -f5 | awk '{$1=$1;print}')
+retval=$?; if [ $retval -ne 0 ]; then echo "problem getting RootDeviceName $retval"; exit $retVal; fi
+
 BLOCK_DEVICE=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep "  DeviceName"   | cut -d "|" -f6 | awk '{$1=$1;print}')
+retval=$?; if [ $retval -ne 0 ]; then echo "problem getting DeviceName $retval"; exit $retVal; fi
+
 echo "Root Device Name..............: $ROOT_DEVICE"
 echo "Block Device Name.............: $BLOCK_DEVICE"
 if [ "$ROOT_DEVICE" == "$BLOCK_DEVICE" ]; then
@@ -40,11 +48,12 @@ if [ "$ROOT_DEVICE" == "$BLOCK_DEVICE" ]; then
 else
   echo "Red Flags - Investiate........: DEVICES DIFFER Red Flags"
   echo "Red Flags - Investiate........: DEVICES DIFFER Red Flags"
-  echo "Red Flags - Investiate........: DEVICES DIFFER Red Flags"
-  echo "Red Flags - Investiate........: DEVICES DIFFER Red Flags"
 fi
 
 ENCRYPTED_STATUS=$(aws ec2 describe-volumes --volume-ids $VOLUME_ID --query "Volumes[0].Encrypted" --output json | jq -r '.')
+retval=$?; if [ $retval -ne 0 ]; then echo "problem getting VOLUME details $retval"; exit $retVal; fi
+
 echo "Volume Encryption Status......: $ENCRYPTED_STATUS"
 
 aws ec2 --output table describe-tags --filters "Name=resource-id,Values=$VOLUME_ID"
+retval=$?; if [ $retval -ne 0 ]; then echo "problem getting device tags $retval"; exit $retVal; fi
