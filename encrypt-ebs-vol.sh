@@ -18,6 +18,7 @@ echo -e "\nWaiting 3m to ensure instance is fully stopped.."
 sleep 180
 
 # Get instance details
+KMS_KEY_ALIAS=alias/test-key
 INSTANCE=$(aws --output json --region $AWS_REGION ec2 describe-instances --instance-ids $INSTANCE_ID)
 VOLUME_ID=$(echo $INSTANCE | jq -r .Reservations[].Instances[].BlockDeviceMappings[].Ebs.VolumeId)
 VOLUME_DEVICE=$(echo $INSTANCE | jq -r .Reservations[].Instances[].BlockDeviceMappings[].DeviceName)
@@ -39,8 +40,8 @@ SOURCE_SNAPSHOT_ID=$(aws --output json  --region $AWS_REGION ec2 create-snapshot
 echo -e "\nWaiting 5m to ensure snapshot ${SOURCE_SNAPSHOT_ID} is ready"
 sleep 300
 
-echo -e "\nCopying the volume ${VOLUME_ID} snapshot ${SOURCE_SNAPSHOT_ID} and encrypting it.."
-SNAPSHOT_ID=$(aws --output json --region $AWS_REGION ec2 copy-snapshot --region $AWS_REGION --source-region $AWS_REGION --source-snapshot-id $SOURCE_SNAPSHOT_ID --description "Snapshot copy of $SOURCE_SNAPSHOT_ID" --encrypted | jq -r .SnapshotId)
+echo -e "\nCopying the volume ${VOLUME_ID} snapshot ${SOURCE_SNAPSHOT_ID} and encrypting it with KMS key alias ${KMS_KEY_ALIAS}.."
+SNAPSHOT_ID=$(aws --output json --region $AWS_REGION ec2 copy-snapshot --region $AWS_REGION --source-region $AWS_REGION --source-snapshot-id $SOURCE_SNAPSHOT_ID --description "Snapshot copy of $SOURCE_SNAPSHOT_ID" --encrypted --kms-key-id $KMS_KEY_ALIAS | jq -r .SnapshotId)
 
 echo -e "\nWaiting 5m to ensure copied snapshot ${SNAPSHOT_ID} is ready"
 sleep 300
