@@ -20,7 +20,7 @@ retval=$?; if [ $retval -ne 0 ]; then echo "problem getting DeviceName $retval";
 
 # Get volume details
 VOLUME=$(aws --output json --region $AWS_REGION ec2 describe-volumes --volume-id $VOLUME_ID)
-retval=$?; if [ $retval -ne 0 ]; then echo "problem getting VOLUME info $retval"; exit $retVal; fi
+.
 VOLUME_AZ=$(echo $VOLUME | jq -r .Volumes[].AvailabilityZone)
 VOLUME_TYPE=$(echo $VOLUME | jq -r .Volumes[].VolumeType)
 VOLUME_IOPS=$(echo $VOLUME | jq -r .Volumes[].Iops)
