@@ -22,3 +22,9 @@ if [ $? -eq 0 ]; then
 else
   echo "Failed to delete EBS volume $VOLUME_ID."
 fi
+
+# sed to edit the terraform template  
+
+terraform import 
+
+terraform destroy --auto-approve 
