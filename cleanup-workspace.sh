@@ -25,6 +25,6 @@ fi
 
 # sed to edit the terraform template  
 
-terraform import 
+#terraform import 
 
-terraform destroy --auto-approve 
+#terraform destroy --auto-approve 
