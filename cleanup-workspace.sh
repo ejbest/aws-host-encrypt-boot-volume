@@ -3,6 +3,7 @@
 set -eo pipefail
 
 VOLUME_ID=$1
+VOLUME_ID_NEW=$2
 
 # Delete old EBS volume and all associated snapshots
 SNAPSHOT_IDS=$(aws ec2 describe-snapshots --filters Name=volume-id,Values=${VOLUME_ID} --query 'Snapshots[*].SnapshotId' --output text)
@@ -23,8 +24,24 @@ else
   echo "Failed to delete EBS volume $VOLUME_ID."
 fi
 
-# sed to edit the terraform template  
+# Get size of New EBS volume and add code in main.tf for importing
 
-#terraform import 
+VOLUME_SIZE=$(aws ec2 describe-volumes --volume-ids $VOLUME_ID_NEW --query "Volumes[0].Size" --output text)
 
-#terraform destroy --auto-approve 
+TF_CODE="
+resource \"aws_ebs_volume\" \"new_volume\" {
+  availability_zone = \"unknown\"
+  size              = $VOLUME_SIZE
+}
+"
+
+TF_FILE="main.tf"
+echo "$TF_CODE" >> $TF_FILE
+
+echo "EBS resource code appended to $TF_FILE"
+
+# Import new EBS volume in terraform
+terraform import aws_ebs_volume.new_volume $VOLUME_ID_NEW
+
+#Running terrafom destroy
+terraform destroy --auto-approve 

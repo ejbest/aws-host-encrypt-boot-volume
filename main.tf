@@ -55,3 +55,9 @@ output "instance_id" {
 output "instance_public_dns" {
   value = aws_instance.test_server.public_dns
 }
+
+resource "aws_ebs_volume" "new_volume" {
+  availability_zone = "unknown"
+  size              = 10
+}
+
