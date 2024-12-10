@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# gawk and gsed was recommended to me 
 set -eo pipefail
 
 INSTANCE_ID=$1
